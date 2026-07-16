@@ -561,10 +561,9 @@ export default function AdventurePage() {
               style={{
                 left: `${10 + Math.random() * 80}%`,
                 top: `${10 + Math.random() * 80}%`,
-                animationDelay: `${Math.random() * 3}s`,
                 animation: clickedStars.includes(i) 
                   ? 'starPop 0.5s ease-out forwards' 
-                  : 'twinkle 3s ease-in-out infinite',
+                  : `twinkle 3s ease-in-out ${Math.random() * 3}s infinite`,
                 opacity: clickedStars.includes(i) ? 1 : 0.6,
               }}
             >
@@ -595,7 +594,7 @@ export default function AdventurePage() {
             <div className="w-full h-48 sm:h-64 bg-gradient-to-b from-navy-mid/80 to-navy/80 rounded-3xl border-2 border-navy-border flex items-center justify-center mb-6 overflow-hidden star-field relative">
               {/* Shooting star effect */}
               <div className="shooting-star" style={{ top: '20%', left: '80%' }}></div>
-              <div className="shooting-star" style={{ top: '60%', left: '90%', animationDelay: '2s' }}></div>
+              <div className="shooting-star shooting-star-delayed" style={{ top: '60%', left: '90%' }}></div>
               
               <div className="text-center relative z-10">
                 <span className="text-6xl sm:text-7xl block animate-float">🌟</span>
@@ -637,10 +636,10 @@ export default function AdventurePage() {
                       key={i}
                       className={`text-xl transition-all ${
                         i < Math.min(clickedStars.length, 5)
-                          ? 'text-sunshine animate-star-pop'
+                          ? 'text-sunshine'
                           : 'text-muted/30'
                       }`}
-                      style={{ animationDelay: `${i * 0.1}s` }}
+                      style={i < Math.min(clickedStars.length, 5) ? { animation: `starPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 0.1}s both` } : undefined}
                     >
                       ⭐
                     </span>
@@ -860,10 +859,10 @@ export default function AdventurePage() {
                   key={i}
                   className={`text-3xl ${
                     i <= transitionData.stars
-                      ? "text-sunshine animate-star-pop"
+                      ? "text-sunshine"
                       : "text-muted/30"
                   }`}
-                  style={{ animationDelay: `${i * 0.15}s` }}
+                  style={i <= transitionData.stars ? { animation: `starPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 0.15}s both` } : undefined}
                 >
                   ⭐
                 </span>
