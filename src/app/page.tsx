@@ -33,7 +33,7 @@ export default function Home() {
   useEffect(() => {
     if (phase === "name") {
       const timer = setTimeout(() => {
-        speak("你好呀小朋友！请告诉我你的名字吧！", 0.9);
+        speak("你好呀小朋友！请告诉我你的名字吧！", 0.95);
       }, 500);
       return () => clearTimeout(timer);
     }
@@ -185,7 +185,7 @@ export default function Home() {
                     setSelectedVoice(e.target.value);
                     setPreferredVoice(e.target.value);
                     // 试听一下
-                    setTimeout(() => speak("你好呀小朋友！", 0.9), 100);
+                    setTimeout(() => speak("你好呀小朋友！", 0.95), 100);
                   }}
                   className="bg-navy-mid border border-navy-border rounded-lg px-2 py-1 text-xs text-cream focus:outline-none focus:border-lavender cursor-pointer"
                 >

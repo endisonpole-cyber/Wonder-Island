@@ -37,7 +37,7 @@ export function initPreferredVoice() {
   if (saved) preferredVoice = saved;
 }
 
-/** 智能选择最佳中文语音：优先女声 */
+/** 智能选择最佳中文语音：优先自然女声 */
 function pickBestZhVoice(): SpeechSynthesisVoice | null {
   const zhVoices = getZhVoices();
   if (zhVoices.length === 0) return null;
@@ -48,9 +48,14 @@ function pickBestZhVoice(): SpeechSynthesisVoice | null {
     if (match) return match;
   }
 
-  // 2. 优先女声关键词
-  const femaleKeywords = ["female", "女", "Huihui", "Yaoyao", "Tingting", "Mei", "Xiaoxiao", "Yunxi"];
-  for (const kw of femaleKeywords) {
+  // 2. 优先选神经网络/在线语音（音质最好，最自然）
+  const naturalKeywords = [
+    "Xiaoxiao", "Xiaoyi", "Yunxi", "Yunyang", "Yunjian",  // 微软新一代神经网络语音
+    "Natural", "Online",                                    // 标注为自然/在线的语音
+    "Huihui", "Yaoyao", "Kangkang",                        // 微软传统但较自然的语音
+    "Tingting", "Mei",                                      // macOS / 其他平台女声
+  ];
+  for (const kw of naturalKeywords) {
     const found = zhVoices.find((v) => v.name.includes(kw));
     if (found) return found;
   }
@@ -60,7 +65,7 @@ function pickBestZhVoice(): SpeechSynthesisVoice | null {
 }
 
 // Speak text using Web Speech API (TTS)
-export function speak(text: string, rate: number = 0.9): SpeechSynthesisUtterance | null {
+export function speak(text: string, rate: number = 0.95): SpeechSynthesisUtterance | null {
   if (typeof window === "undefined" || !window.speechSynthesis) return null;
 
   initPreferredVoice();
@@ -71,7 +76,7 @@ export function speak(text: string, rate: number = 0.9): SpeechSynthesisUtteranc
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = "zh-CN";
   utterance.rate = rate;
-  utterance.pitch = 1.1; // Slightly higher pitch for child-friendly voice
+  utterance.pitch = 1.0; // 正常音调，自然不刺耳
 
   const voice = pickBestZhVoice();
   if (voice) {
@@ -83,7 +88,7 @@ export function speak(text: string, rate: number = 0.9): SpeechSynthesisUtteranc
 }
 
 // Speak English text
-export function speakEnglish(text: string, rate: number = 0.7): SpeechSynthesisUtterance | null {
+export function speakEnglish(text: string, rate: number = 0.8): SpeechSynthesisUtterance | null {
   if (typeof window === "undefined" || !window.speechSynthesis) return null;
 
   window.speechSynthesis.cancel();
@@ -91,7 +96,7 @@ export function speakEnglish(text: string, rate: number = 0.7): SpeechSynthesisU
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = "en-US";
   utterance.rate = rate;
-  utterance.pitch = 1.2;
+  utterance.pitch = 1.0; // 正常音调
 
   const voices = cachedVoices.length > 0 ? cachedVoices : window.speechSynthesis.getVoices();
   const enVoice = voices.find(
