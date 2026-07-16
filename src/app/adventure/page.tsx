@@ -7,6 +7,7 @@ import { useGameStore } from "@/lib/store";
 import { ZhizhiSpeaker } from "@/components/ZhizhiOwl";
 import CrystalCounter from "@/components/CrystalCounter";
 import StarRating from "@/components/StarRating";
+import { speak, initPreferredVoice } from "@/lib/speech";
 
 // 游戏组件按需加载，减小初始 bundle 体积，加快首屏
 const GameLoading = () => (
@@ -113,6 +114,7 @@ export default function AdventurePage() {
   const [dimCount, setDimCount] = useState(0);
   const [resultPhase, setResultPhase] = useState<"sorting" | "comparing">("sorting");
   const [sortingDone, setSortingDone] = useState(false);
+  const [showWelcomeSpeech, setShowWelcomeSpeech] = useState(true);
 
   const actState = store.currentTheme
     ? store.themes[store.currentTheme].acts[0]
@@ -191,6 +193,16 @@ export default function AdventurePage() {
       store.selectTheme("space");
     }
   }, []);
+
+  useEffect(() => {
+    initPreferredVoice();
+    if (view === "hub" && showWelcomeSpeech) {
+      const timer = setTimeout(() => {
+        speak("欢迎来到第一幕：地球的夜空！我是知知。夜空中布满了闪烁的星星，让我们来认识它们吧！先点击故事导入，开始今天的冒险。", 0.95);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [view, showWelcomeSpeech]);
 
   useEffect(() => {
     if (view !== "transition" || !transitionData) return;
@@ -352,6 +364,13 @@ export default function AdventurePage() {
             <h2 className="text-2xl sm:text-3xl font-bold text-cream mt-3">{ACT_DATA[0].title}</h2>
             <p className="text-base sm:text-lg text-sunshine mt-1">{ACT_DATA[0].subtitle}</p>
             <p className="text-sm sm:text-base text-muted mt-2">{ACT_DATA[0].description}</p>
+            <button
+              onClick={() => speak("欢迎来到第一幕：地球的夜空！我是知知。夜空中布满了闪烁的星星，让我们来认识它们吧！先点击故事导入，开始今天的冒险。", 0.95)}
+              className="mt-3 px-4 py-1.5 rounded-full bg-navy-mid border border-teal/50 text-sm text-teal hover:bg-teal/20 transition-all flex items-center gap-2 mx-auto"
+            >
+              <span>🔊</span>
+              <span>再听一遍</span>
+            </button>
           </div>
 
           {/* Station grid */}
