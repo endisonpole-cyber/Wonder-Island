@@ -34,8 +34,8 @@ export default function ZhizhiOwl({
           {speaking && (
             <div className="flex items-center gap-1 mt-1">
               <div className="w-1.5 h-1.5 bg-teal rounded-full animate-pulse" />
-              <div className="w-1.5 h-1.5 bg-teal rounded-full animate-pulse" style={{ animationDelay: "0.2s" }} />
-              <div className="w-1.5 h-1.5 bg-teal rounded-full animate-pulse" style={{ animationDelay: "0.4s" }} />
+              <div className="w-1.5 h-1.5 bg-teal rounded-full animate-pulse animate-delay-2" />
+            <div className="w-1.5 h-1.5 bg-teal rounded-full animate-pulse animate-delay-4" />
               <span className="text-xs text-muted ml-1">知知正在说话...</span>
             </div>
           )}

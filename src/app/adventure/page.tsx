@@ -542,13 +542,13 @@ export default function AdventurePage() {
       <div className="min-h-screen bg-navy star-field relative overflow-hidden">
         {/* Animated background layers */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-10 left-10 text-6xl animate-float" style={{ animationDelay: '0s' }}>🌌</div>
-          <div className="absolute top-20 right-20 text-4xl animate-float" style={{ animationDelay: '1s' }}>🪐</div>
-          <div className="absolute bottom-32 left-1/4 text-3xl animate-float" style={{ animationDelay: '2s' }}>🚀</div>
-          <div className="absolute bottom-20 right-1/3 text-5xl animate-float" style={{ animationDelay: '0.5s' }}>🌠</div>
+          <div className="absolute top-10 left-10 text-6xl animate-float animate-delay-0">🌌</div>
+          <div className="absolute top-20 right-20 text-4xl animate-float animate-delay-10">🪐</div>
+          <div className="absolute bottom-32 left-1/4 text-3xl animate-float animate-delay-20">🚀</div>
+          <div className="absolute bottom-20 right-1/3 text-5xl animate-float animate-delay-5">🌠</div>
           <div className="absolute top-1/3 right-10 text-2xl animate-twinkle">⭐</div>
-          <div className="absolute top-1/2 left-8 text-3xl animate-twinkle" style={{ animationDelay: '0.7s' }}>✨</div>
-          <div className="absolute bottom-40 left-20 text-2xl animate-twinkle" style={{ animationDelay: '1.2s' }}>⭐</div>
+          <div className="absolute top-1/2 left-8 text-3xl animate-twinkle animate-delay-7">✨</div>
+          <div className="absolute bottom-40 left-20 text-2xl animate-twinkle animate-delay-12">⭐</div>
         </div>
 
         {/* Interactive stars */}
@@ -600,11 +600,11 @@ export default function AdventurePage() {
               <div className="text-center relative z-10">
                 <span className="text-6xl sm:text-7xl block animate-float">🌟</span>
                 <div className="flex gap-3 mt-3 justify-center">
-                  <span className="text-2xl sm:text-3xl animate-twinkle">⭐</span>
-                  <span className="text-xl sm:text-2xl animate-twinkle" style={{ animationDelay: "0.5s" }}>⭐</span>
-                  <span className="text-3xl sm:text-4xl animate-twinkle" style={{ animationDelay: "1s" }}>⭐</span>
-                  <span className="text-xl sm:text-2xl animate-twinkle" style={{ animationDelay: "1.5s" }}>⭐</span>
-                  <span className="text-2xl sm:text-3xl animate-twinkle" style={{ animationDelay: "2s" }}>⭐</span>
+                <span className="text-2xl sm:text-3xl animate-twinkle">⭐</span>
+                <span className="text-xl sm:text-2xl animate-twinkle animate-delay-5">⭐</span>
+                <span className="text-3xl sm:text-4xl animate-twinkle animate-delay-10">⭐</span>
+                <span className="text-xl sm:text-2xl animate-twinkle animate-delay-15">⭐</span>
+                <span className="text-2xl sm:text-3xl animate-twinkle animate-delay-20">⭐</span>
                 </div>
                 <p className="text-sm text-muted mt-4">点击星星让它们发光！✨</p>
               </div>

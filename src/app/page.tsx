@@ -202,9 +202,9 @@ export default function Home() {
           {/* Floating decorations */}
           <div className="fixed bottom-10 left-0 right-0 flex justify-center gap-4 pointer-events-none">
             <span className="text-3xl animate-float opacity-30">⭐</span>
-            <span className="text-2xl animate-twinkle opacity-20" style={{ animationDelay: "1s" }}>✨</span>
-            <span className="text-4xl animate-float opacity-30" style={{ animationDelay: "0.5s" }}>💎</span>
-            <span className="text-2xl animate-twinkle opacity-20" style={{ animationDelay: "2s" }}>✨</span>
+            <span className="text-2xl animate-twinkle opacity-20 animate-delay-10">✨</span>
+            <span className="text-4xl animate-float opacity-30 animate-delay-5">💎</span>
+            <span className="text-2xl animate-twinkle opacity-20 animate-delay-20">✨</span>
           </div>
         </div>
       )}
