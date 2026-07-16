@@ -1,11 +1,10 @@
-import type { Config } from "tailwindcss";
-import { themeColors } from "./src/config/theme-colors";
-
 /**
- * 传统 Tailwind 配置文件，主要用于兼容 Next.js 16 内部工具
- *（如 bundle analyzer / dev overlay）读取 theme colors。
- * 项目实际样式由 Tailwind CSS v4 的 globals.css @theme inline 处理。
+ * Tailwind CSS v4 配置文件
+ * 项目实际样式由 globals.css @theme inline 处理
+ * 此文件保留以兼容 Next.js 开发工具
  */
+import type { Config } from "tailwindcss";
+
 const config: Config = {
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
@@ -14,7 +13,18 @@ const config: Config = {
   ],
   theme: {
     extend: {
-      colors: themeColors,
+      colors: {
+        coral: "#FF6B6B",
+        teal: "#4ECDC4",
+        sunshine: "#FFE66D",
+        lavender: "#A78BFA",
+        navy: "#0B0E1A",
+        "navy-light": "#141829",
+        "navy-mid": "#1C2038",
+        "navy-border": "#2A2E45",
+        cream: "#F0F0F5",
+        muted: "#8B8FA3",
+      },
     },
   },
   plugins: [],
