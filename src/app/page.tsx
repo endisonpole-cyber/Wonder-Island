@@ -3,12 +3,32 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import ParticleStarfield from "@/components/ParticleStarfield";
-import { speak } from "@/lib/speech";
+import { speak, getZhVoices, setPreferredVoice, initPreferredVoice } from "@/lib/speech";
 
 export default function Home() {
   const router = useRouter();
   const [playerName, setPlayerName] = useState("");
   const [phase, setPhase] = useState<"landing" | "name">("landing");
+  const [zhVoices, setZhVoicesState] = useState<SpeechSynthesisVoice[]>([]);
+  const [selectedVoice, setSelectedVoice] = useState<string>("");
+
+  // 加载可用中文语音列表
+  useEffect(() => {
+    initPreferredVoice();
+    const loadVoices = () => {
+      const voices = getZhVoices();
+      if (voices.length > 0) {
+        setZhVoicesState(voices);
+        const saved = localStorage.getItem("preferred-voice");
+        setSelectedVoice(saved || voices[0]?.name || "");
+      }
+    };
+    loadVoices();
+    // 浏览器异步加载语音，监听变化
+    if (typeof window !== "undefined" && window.speechSynthesis) {
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+  }, []);
 
   useEffect(() => {
     if (phase === "name") {
@@ -154,6 +174,29 @@ export default function Home() {
             >
               ← 返回
             </button>
+
+            {/* 语音选择器 */}
+            {zhVoices.length > 1 && (
+              <div className="flex items-center gap-2 mt-2">
+                <span className="text-xs text-muted">🔊 语音：</span>
+                <select
+                  value={selectedVoice}
+                  onChange={(e) => {
+                    setSelectedVoice(e.target.value);
+                    setPreferredVoice(e.target.value);
+                    // 试听一下
+                    setTimeout(() => speak("你好呀小朋友！", 0.9), 100);
+                  }}
+                  className="bg-navy-mid border border-navy-border rounded-lg px-2 py-1 text-xs text-cream focus:outline-none focus:border-lavender cursor-pointer"
+                >
+                  {zhVoices.map((v) => (
+                    <option key={v.name} value={v.name}>
+                      {v.name.replace(/Microsoft\s*|Google\s*/i, "")}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
 
           {/* Floating decorations */}
