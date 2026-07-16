@@ -1,13 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import ParticleStarfield from "@/components/ParticleStarfield";
+import { speak } from "@/lib/speech";
 
 export default function Home() {
   const router = useRouter();
   const [playerName, setPlayerName] = useState("");
   const [phase, setPhase] = useState<"landing" | "name">("landing");
+
+  useEffect(() => {
+    if (phase === "name") {
+      const timer = setTimeout(() => {
+        speak("你好呀小朋友！请告诉我你的名字吧！", 0.9);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [phase]);
 
   return (
     <div className="min-h-screen bg-navy star-field flex flex-col relative">
@@ -106,12 +116,15 @@ export default function Home() {
       {phase === "name" && (
         <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 animate-fade-in">
           <div className="text-center mb-8">
-            <span className="text-6xl mb-4 block">🌟</span>
+            <div className="relative inline-block mb-4">
+              <span className="text-6xl sm:text-7xl animate-float drop-shadow-[0_0_20px_rgba(78,205,196,0.5)] block">🦉</span>
+              <span className="absolute -top-1 -right-2 text-2xl animate-twinkle">✨</span>
+            </div>
             <h2 className="text-3xl font-bold text-cream">
-              你好，小探险家！
+              你好呀，小朋友！
             </h2>
             <p className="text-lg text-muted mt-2">
-              知知想知道你的名字
+              我是知知猫头鹰，你叫什么名字呀？
             </p>
           </div>
 

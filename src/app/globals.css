@@ -77,6 +77,21 @@ body {
 .animate-slide-in { animation: slideIn 0.5s ease-out; }
 .animate-fade-in { animation: fadeIn 0.6s ease-out; }
 
+@keyframes bounceIn {
+  0% { transform: scale(0.3); opacity: 0; }
+  50% { transform: scale(1.1); }
+  70% { transform: scale(0.95); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.animate-bounce-in { animation: bounceIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+@keyframes starPop {
+  0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+  60% { transform: scale(1.3) rotate(10deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+.animate-star-pop { animation: starPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
 /* 醒目标题：流动渐变 + 多层发光 */
 .hero-title {
   background-size: 300% 300%;
@@ -234,14 +249,58 @@ body {
   background-size: 220px 100px;
 }
 
+.shooting-star {
+  position: absolute;
+  width: 100px;
+  height: 2px;
+  background: linear-gradient(to left, #fff, transparent);
+  animation: shoot 4s linear infinite;
+  opacity: 0;
+}
+
+@keyframes shoot {
+  0% {
+    transform: translateX(0) translateY(0) rotate(-45deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-200px) translateY(200px) rotate(-45deg);
+    opacity: 0;
+  }
+}
+
 /* Card hover effect */
 .game-card {
   transition: all 0.3s ease;
   cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.game-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(78, 205, 196, 0.1), transparent);
+  transition: left 0.5s ease;
+}
+.game-card:hover::before {
+  left: 100%;
 }
 .game-card:hover {
-  transform: translateY(-4px) scale(1.02);
-  box-shadow: 0 12px 40px rgba(78, 205, 196, 0.2);
+  transform: translateY(-6px) scale(1.03);
+  box-shadow: 0 16px 48px rgba(78, 205, 196, 0.25), 0 0 30px rgba(167, 139, 250, 0.15);
+}
+.game-card:active {
+  transform: translateY(-2px) scale(1.01);
 }
 
 /* Crystal animation */

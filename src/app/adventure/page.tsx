@@ -88,7 +88,7 @@ const THINKING_QUESTIONS = [
 export default function AdventurePage() {
   const router = useRouter();
   const store = useGameStore();
-  const [view, setView] = useState<"hub" | "story" | "game" | "galaxy">("hub");
+  const [view, setView] = useState<"hub" | "story" | "game" | "galaxy" | "transition" | "complete">("hub");
   const [currentGame, setCurrentGame] = useState<string | null>(null);
   const [showStationDetail, setShowStationDetail] = useState<string | null>(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -98,30 +98,50 @@ export default function AdventurePage() {
     brightColor: string;
     dimColor: string;
   } | null>(null);
-
-  const handleResetProgress = () => {
-    store.resetProgress();
-    setShowResetConfirm(false);
-    setView("hub");
-    setCurrentGame(null);
-    setShowStationDetail(null);
-  };
+  const [autoPlayMode, setAutoPlayMode] = useState(false);
+  const [transitionData, setTransitionData] = useState<{
+    score: number;
+    stars: number;
+    nextStation: typeof STATION_LIST[number] | null;
+    currentLabel: string;
+  } | null>(null);
+  const [countdown, setCountdown] = useState(3);
+  const [clickedStars, setClickedStars] = useState<number[]>([]);
+  const [storyPhase, setStoryPhase] = useState<'intro' | 'dialogue' | 'ready'>('intro');
+  const [displayedText, setDisplayedText] = useState('');
+  const [brightCount, setBrightCount] = useState(0);
+  const [dimCount, setDimCount] = useState(0);
+  const [resultPhase, setResultPhase] = useState<"sorting" | "comparing">("sorting");
+  const [sortingDone, setSortingDone] = useState(false);
 
   const actState = store.currentTheme
     ? store.themes[store.currentTheme].acts[0]
     : null;
 
-  useEffect(() => {
-    if (!store.currentTheme) {
-      store.selectTheme("space");
-    }
-  }, []);
+  const getStationIndex = (type: string) =>
+    STATION_LIST.findIndex((s) => s.type === type);
 
-  const handleStationClick = (stationId: string) => {
-    if (stationId === "story") {
+  const getNextStation = (currentType: string): typeof STATION_LIST[number] | null => {
+    const currentIdx = getStationIndex(currentType);
+    for (let i = currentIdx + 1; i < STATION_LIST.length; i++) {
+      const station = STATION_LIST[i];
+      const categoryMap: Record<string, "story" | "math" | "english" | "science" | "thinking"> = {
+        story: "story", math1: "math", math2: "math", math3: "math", math4: "math",
+        english1: "english", english2: "english", science1: "science", science2: "science",
+        thinking: "thinking",
+      };
+      const cat = categoryMap[station.type];
+      if (!actState?.stations[cat]?.completed) {
+        return station;
+      }
+    }
+    return null;
+  };
+
+  const startStation = (type: string) => {
+    if (type === "story") {
       setView("story");
-    } else if (stationId === "math4") {
-      // Galaxy grouping game - inline implementation
+    } else if (type === "math4") {
       setView("galaxy");
       setGalaxyData({
         brightStars: 8 + Math.floor(Math.random() * 5),
@@ -129,45 +149,158 @@ export default function AdventurePage() {
         brightColor: "#FFE66D",
         dimColor: "#8B8FA3",
       });
-    } else if (stationId === "math2") {
+    } else if (type === "math2") {
       setCurrentGame("constellation");
       setView("game");
-    } else if (stationId === "math3") {
+    } else if (type === "math3") {
       setCurrentGame("shootingStar");
       setView("game");
-    } else if (stationId === "english1") {
+    } else if (type === "english1") {
       setCurrentGame("wordFlip");
       setView("game");
-    } else if (stationId === "english2") {
+    } else if (type === "english2") {
       setCurrentGame("readAlong");
       setView("game");
-    } else if (stationId === "science1") {
+    } else if (type === "science1") {
       setCurrentGame("sunBook");
       setView("game");
-    } else if (stationId === "science2") {
+    } else if (type === "science2") {
       setCurrentGame("constellationDetective");
       setView("game");
-    } else if (stationId === "thinking") {
+    } else if (type === "thinking") {
       setCurrentGame("thinking");
       setView("game");
     } else {
-      setCurrentGame(stationId);
+      setCurrentGame(type);
       setView("game");
     }
   };
 
-  const handleComplete = (score: number, stars: number) => {
-    const stationMap: Record<string, "math" | "english" | "science" | "thinking"> = {
+  const handleResetProgress = () => {
+    store.resetProgress();
+    setShowResetConfirm(false);
+    setView("hub");
+    setCurrentGame(null);
+    setShowStationDetail(null);
+    setAutoPlayMode(false);
+    setTransitionData(null);
+  };
+
+  useEffect(() => {
+    if (!store.currentTheme) {
+      store.selectTheme("space");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (view !== "transition" || !transitionData) return;
+    if (countdown <= 0) {
+      goToNextStation();
+      return;
+    }
+    const timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [countdown, view, transitionData]);
+
+  useEffect(() => {
+    if (view !== "story") return;
+    setClickedStars([]);
+    setStoryPhase('intro');
+    setDisplayedText('');
+    const startTimer = setTimeout(() => setStoryPhase('dialogue'), 1500);
+    return () => clearTimeout(startTimer);
+  }, [view]);
+
+  useEffect(() => {
+    if (storyPhase !== 'dialogue') return;
+    let index = 0;
+    const timer = setInterval(() => {
+      if (index <= ACT_DATA[0].storyMessage.length) {
+        setDisplayedText(ACT_DATA[0].storyMessage.slice(0, index));
+        index++;
+      } else {
+        clearInterval(timer);
+        setStoryPhase('ready');
+      }
+    }, 80);
+    return () => clearInterval(timer);
+  }, [storyPhase]);
+
+  const handleStationClick = (stationId: string) => {
+    setAutoPlayMode(true);
+    setCountdown(3);
+    startStation(stationId);
+  };
+
+  const getStationTypeForStore = (type: string): "story" | "math" | "english" | "science" | "thinking" => {
+    const map: Record<string, "story" | "math" | "english" | "science" | "thinking"> = {
+      story: "story",
       math1: "math", math2: "math", math3: "math", math4: "math",
       english1: "english", english2: "english",
       science1: "science", science2: "science",
       thinking: "thinking",
     };
-    const current = currentGame || showStationDetail || "";
-    const stationType = stationMap[current] || "math";
+    return map[type] || "math";
+  };
+
+  const getCurrentStationKey = (): string => {
+    if (view === "story") return "story";
+    if (view === "galaxy") return "math4";
+    if (view === "game" && currentGame) {
+      const reverseMap: Record<string, string> = {
+        constellation: "math2",
+        shootingStar: "math3",
+        wordFlip: "english1",
+        readAlong: "english2",
+        sunBook: "science1",
+        constellationDetective: "science2",
+        thinking: "thinking",
+        math1: "math1",
+      };
+      return reverseMap[currentGame] || currentGame;
+    }
+    return "";
+  };
+
+  const handleComplete = (score: number, stars: number) => {
+    const currentKey = getCurrentStationKey();
+    const stationType = getStationTypeForStore(currentKey);
+    const currentStation = STATION_LIST.find((s) => s.type === currentKey);
 
     store.completeStation(stationType, score, stars);
     store.collectCrystal(1);
+
+    if (!autoPlayMode) {
+      setView("hub");
+      setCurrentGame(null);
+      return;
+    }
+
+    const nextStation = getNextStation(currentKey);
+    setCountdown(3);
+    setTransitionData({
+      score,
+      stars,
+      nextStation,
+      currentLabel: currentStation?.label || "",
+    });
+    setView("transition");
+    setCurrentGame(null);
+  };
+
+  const goToNextStation = () => {
+    if (!transitionData?.nextStation) {
+      setView("complete");
+      setTransitionData(null);
+      return;
+    }
+    startStation(transitionData.nextStation.type);
+    setTransitionData(null);
+  };
+
+  const exitToHub = () => {
+    setAutoPlayMode(false);
+    setTransitionData(null);
     setView("hub");
     setCurrentGame(null);
   };
@@ -223,8 +356,7 @@ export default function AdventurePage() {
 
           {/* Station grid */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-            {STATION_LIST.map((station) => {
-              // Map specific station keys to store categories
+            {STATION_LIST.map((station, index) => {
               const categoryMap: Record<string, "story" | "math" | "english" | "science" | "thinking"> = {
                 story: "story", math1: "math", math2: "math", math3: "math", math4: "math",
                 english1: "english", english2: "english", science1: "science", science2: "science",
@@ -234,32 +366,102 @@ export default function AdventurePage() {
               const completed = actState?.stations[storeCategory]?.completed;
               const stationScore = actState?.stations[storeCategory]?.score || 0;
               const stationStars = actState?.stations[storeCategory]?.stars || 0;
+              const isNext = !completed && STATION_LIST.slice(0, index).every(
+                (s) => actState?.stations[categoryMap[s.type]]?.completed
+              );
 
               return (
                 <button
                   key={station.type}
                   onClick={() => handleStationClick(station.type)}
-                  className={`game-card relative rounded-2xl border-2 p-4 sm:p-5 text-left transition-all ${
+                  className={`game-card relative rounded-2xl border-2 p-4 sm:p-5 text-left transition-all group ${
                     completed
                       ? "bg-teal/10 border-teal/30"
-                      : "bg-navy-light border-navy-border hover:border-teal/50"
+                      : isNext
+                        ? "bg-navy-light border-teal/50 animate-pulse-glow"
+                        : "bg-navy-light/50 border-navy-border opacity-60"
                   }`}
                 >
+                  {/* Corner decoration */}
+                  <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 rounded-tl-xl transition-colors"
+                       style={{ borderColor: completed ? '#4ECDC4' : (isNext ? '#4ECDC4' : '#2A2E45') }}></div>
+                  <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 rounded-tr-xl transition-colors"
+                       style={{ borderColor: completed ? '#4ECDC4' : (isNext ? '#4ECDC4' : '#2A2E45') }}></div>
+                  <div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 rounded-bl-xl transition-colors"
+                       style={{ borderColor: completed ? '#4ECDC4' : (isNext ? '#4ECDC4' : '#2A2E45') }}></div>
+                  <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 rounded-br-xl transition-colors"
+                       style={{ borderColor: completed ? '#4ECDC4' : (isNext ? '#4ECDC4' : '#2A2E45') }}></div>
+
+                  {/* Status badges */}
                   {completed && (
-                    <div className="absolute top-2 right-2 text-lg">✅</div>
+                    <div className="absolute top-2 right-2 text-lg animate-bounce-in">✅</div>
                   )}
-                  <span className="text-3xl sm:text-4xl block mb-2">{station.emoji}</span>
-                  <h3 className="text-base sm:text-lg font-bold text-cream mb-1">{station.label}</h3>
+                  {isNext && !completed && (
+                    <div className="absolute top-2 right-2 text-lg animate-pulse">🔮</div>
+                  )}
+
+                  {/* Emoji with hover effect */}
+                  <div className="relative mb-2">
+                    <span className={`text-3xl sm:text-4xl block transition-transform duration-300 ${
+                      isNext ? 'animate-float' : 'group-hover:scale-110'
+                    }`}>
+                      {station.emoji}
+                    </span>
+                    {isNext && (
+                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-8 h-1 bg-teal rounded-full animate-pulse"></div>
+                    )}
+                  </div>
+
+                  {/* Title */}
+                  <h3 className={`text-base sm:text-lg font-bold mb-1 transition-colors ${
+                    completed ? 'text-teal' : (isNext ? 'text-cream' : 'text-muted')
+                  }`}>
+                    {station.label}
+                  </h3>
                   <p className="text-xs sm:text-sm text-muted">{station.description}</p>
+
+                  {/* Progress/Score */}
                   {completed && (
-                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-navy-border">
+                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-navy-border/50">
                       <StarRating stars={stationStars} size="sm" />
-                      <span className="text-sm text-teal font-bold">{stationScore}分</span>
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs text-muted">得分</span>
+                        <span className="text-sm text-teal font-bold">{stationScore}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Lock icon for locked stations */}
+                  {!completed && !isNext && (
+                    <div className="mt-2 flex items-center gap-1">
+                      <span className="text-xs text-muted">🔒 完成前面的任务解锁</span>
                     </div>
                   )}
                 </button>
               );
             })}
+          </div>
+
+          {/* Overall progress bar */}
+          <div className="mt-8 bg-navy-mid/50 rounded-xl p-4">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm text-cream font-bold">📊 探险进度</span>
+              <span className="text-sm text-teal font-bold">
+                {actState ? Object.values(actState.stations).filter(s => s.completed).length : 0}/5 个任务完成
+              </span>
+            </div>
+            <div className="w-full bg-navy-border rounded-full h-3 overflow-hidden">
+              <div
+                className="bg-gradient-to-r from-teal via-sunshine to-lavender h-full transition-all duration-700 flex items-center justify-end pr-2"
+                style={{ width: `${actState ? (Object.values(actState.stations).filter(s => s.completed).length / 5) * 100 : 0}%` }}
+              >
+                <span className="text-xs text-navy font-bold">✨</span>
+              </div>
+            </div>
+            <div className="flex justify-between mt-2 text-xs text-muted">
+              <span>开始探险</span>
+              <span>通关完成</span>
+            </div>
           </div>
 
           {/* Zhizhi at bottom */}
@@ -311,16 +513,51 @@ export default function AdventurePage() {
 
   // ========== STORY VIEW ==========
   if (view === "story") {
+    const handleStarClick = (index: number) => {
+      if (!clickedStars.includes(index)) {
+        setClickedStars([...clickedStars, index]);
+      }
+    };
+
     return (
-      <div className="min-h-screen bg-navy star-field">
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <div className="min-h-screen bg-navy star-field relative overflow-hidden">
+        {/* Animated background layers */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-10 left-10 text-6xl animate-float" style={{ animationDelay: '0s' }}>🌌</div>
+          <div className="absolute top-20 right-20 text-4xl animate-float" style={{ animationDelay: '1s' }}>🪐</div>
+          <div className="absolute bottom-32 left-1/4 text-3xl animate-float" style={{ animationDelay: '2s' }}>🚀</div>
+          <div className="absolute bottom-20 right-1/3 text-5xl animate-float" style={{ animationDelay: '0.5s' }}>🌠</div>
+          <div className="absolute top-1/3 right-10 text-2xl animate-twinkle">⭐</div>
+          <div className="absolute top-1/2 left-8 text-3xl animate-twinkle" style={{ animationDelay: '0.7s' }}>✨</div>
+          <div className="absolute bottom-40 left-20 text-2xl animate-twinkle" style={{ animationDelay: '1.2s' }}>⭐</div>
+        </div>
+
+        {/* Interactive stars */}
+        <div className="absolute inset-0 pointer-events-none">
+          {[...Array(15)].map((_, i) => (
+            <button
+              key={i}
+              onClick={() => handleStarClick(i)}
+              className="absolute text-xl sm:text-2xl transition-all duration-300 hover:scale-150 pointer-events-auto"
+              style={{
+                left: `${10 + Math.random() * 80}%`,
+                top: `${10 + Math.random() * 80}%`,
+                animationDelay: `${Math.random() * 3}s`,
+                animation: clickedStars.includes(i) 
+                  ? 'starPop 0.5s ease-out forwards' 
+                  : 'twinkle 3s ease-in-out infinite',
+                opacity: clickedStars.includes(i) ? 1 : 0.6,
+              }}
+            >
+              {clickedStars.includes(i) ? '💫' : '⭐'}
+            </button>
+          ))}
+        </div>
+
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-8 relative z-10">
           {/* Back button */}
           <button
-            onClick={() => {
-              setView("hub");
-              store.completeStation("story", 5, 1);
-              store.collectCrystal(1);
-            }}
+            onClick={exitToHub}
             className="flex items-center gap-2 text-muted hover:text-cream transition-colors mb-6"
           >
             ← 返回探险地图
@@ -328,41 +565,91 @@ export default function AdventurePage() {
 
           {/* Story content */}
           <div className="animate-fade-in">
+            {/* Scene title */}
+            <div className="text-center mb-6">
+              <span className="text-4xl sm:text-5xl animate-bounce-in">{ACT_DATA[0].emoji}</span>
+              <h2 className="text-xl sm:text-2xl font-bold text-cream mt-2">{ACT_DATA[0].title}</h2>
+              <p className="text-sm sm:text-base text-sunshine">{ACT_DATA[0].subtitle}</p>
+            </div>
+
             {/* Scene illustration */}
-            <div className="w-full h-64 bg-gradient-to-b from-navy-mid to-navy rounded-2xl border border-navy-border flex items-center justify-center mb-8 overflow-hidden star-field">
-              <div className="text-center">
-                <span className="text-7xl block animate-float">🌟</span>
-                <div className="flex gap-2 mt-4 justify-center">
-                  <span className="text-3xl animate-twinkle">⭐</span>
-                  <span className="text-2xl animate-twinkle" style={{ animationDelay: "0.5s" }}>⭐</span>
-                  <span className="text-4xl animate-twinkle" style={{ animationDelay: "1s" }}>⭐</span>
-                  <span className="text-2xl animate-twinkle" style={{ animationDelay: "1.5s" }}>⭐</span>
-                  <span className="text-3xl animate-twinkle" style={{ animationDelay: "2s" }}>⭐</span>
+            <div className="w-full h-48 sm:h-64 bg-gradient-to-b from-navy-mid/80 to-navy/80 rounded-3xl border-2 border-navy-border flex items-center justify-center mb-6 overflow-hidden star-field relative">
+              {/* Shooting star effect */}
+              <div className="shooting-star" style={{ top: '20%', left: '80%' }}></div>
+              <div className="shooting-star" style={{ top: '60%', left: '90%', animationDelay: '2s' }}></div>
+              
+              <div className="text-center relative z-10">
+                <span className="text-6xl sm:text-7xl block animate-float">🌟</span>
+                <div className="flex gap-3 mt-3 justify-center">
+                  <span className="text-2xl sm:text-3xl animate-twinkle">⭐</span>
+                  <span className="text-xl sm:text-2xl animate-twinkle" style={{ animationDelay: "0.5s" }}>⭐</span>
+                  <span className="text-3xl sm:text-4xl animate-twinkle" style={{ animationDelay: "1s" }}>⭐</span>
+                  <span className="text-xl sm:text-2xl animate-twinkle" style={{ animationDelay: "1.5s" }}>⭐</span>
+                  <span className="text-2xl sm:text-3xl animate-twinkle" style={{ animationDelay: "2s" }}>⭐</span>
                 </div>
+                <p className="text-sm text-muted mt-4">点击星星让它们发光！✨</p>
               </div>
             </div>
 
             {/* Zhizhi narration */}
-            <ZhizhiSpeaker
-              message={ACT_DATA[0].storyMessage}
-              autoSpeak={true}
-              onDone={() => {
-                // Auto-mark as complete after narration ends
-              }}
-            />
+            <div className="bg-navy-light/90 rounded-2xl border border-lavender/30 p-4 sm:p-6 mb-6">
+              <div className="flex items-start gap-3">
+                <div className="text-4xl animate-bounce-in">🦉</div>
+                <div className="flex-1">
+                  <p className="text-sm text-lavender mb-1">知知猫头鹰说：</p>
+                  <p className="text-cream text-base sm:text-lg leading-relaxed">
+                    {storyPhase === 'intro' ? (
+                      <span className="animate-pulse">...</span>
+                    ) : (
+                      displayedText + (storyPhase === 'dialogue' ? <span className="animate-pulse">|</span> : '')
+                    )}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Star collection progress */}
+            <div className="bg-navy-mid/50 rounded-xl p-4 mb-6">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted">收集的星星</span>
+                <div className="flex gap-1">
+                  {[...Array(5)].map((_, i) => (
+                    <span
+                      key={i}
+                      className={`text-xl transition-all ${
+                        i < Math.min(clickedStars.length, 5)
+                          ? 'text-sunshine animate-star-pop'
+                          : 'text-muted/30'
+                      }`}
+                      style={{ animationDelay: `${i * 0.1}s` }}
+                    >
+                      ⭐
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div className="w-full bg-navy-border rounded-full h-2 mt-2 overflow-hidden">
+                <div
+                  className="bg-gradient-to-r from-teal to-sunshine h-full transition-all duration-500"
+                  style={{ width: `${Math.min((clickedStars.length / 5) * 100, 100)}%` }}
+                ></div>
+              </div>
+            </div>
 
             {/* Continue button */}
-            <div className="mt-8 text-center">
-              <button
-                onClick={() => {
-                  setView("hub");
-                  store.completeStation("story", 5, 1);
-                  store.collectCrystal(1);
-                }}
-                className="px-8 py-4 rounded-2xl bg-teal text-navy text-xl font-bold hover:bg-teal/80 transition-all animate-pulse-glow"
-              >
-                开始探险！🚀
-              </button>
+            <div className="mt-4 text-center">
+              {storyPhase === 'ready' ? (
+                <button
+                  onClick={() => handleComplete(5, 1)}
+                  className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-teal to-sunshine text-navy text-xl font-bold hover:opacity-90 transition-all animate-pulse-glow"
+                >
+                  开始探险！🚀
+                </button>
+              ) : (
+                <div className="text-muted text-sm animate-pulse">
+                  知知正在讲述冒险故事...
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -372,11 +659,6 @@ export default function AdventurePage() {
 
   // ========== GALAXY GROUPING GAME (inline) ==========
   if (view === "galaxy" && galaxyData) {
-    const [brightCount, setBrightCount] = useState(0);
-    const [dimCount, setDimCount] = useState(0);
-    const [resultPhase, setResultPhase] = useState<"sorting" | "comparing">("sorting");
-    const [sortingDone, setSortingDone] = useState(false);
-
     const totalBright = galaxyData.brightStars;
     const totalDim = galaxyData.dimStars;
     const isBrightDone = brightCount >= totalBright;
@@ -387,7 +669,7 @@ export default function AdventurePage() {
       <div className="min-h-screen bg-navy star-field">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
           <button
-            onClick={() => { setView("hub"); }}
+            onClick={exitToHub}
             className="flex items-center gap-2 text-muted hover:text-cream transition-colors mb-6"
           >
             ← 返回探险地图
@@ -521,7 +803,7 @@ export default function AdventurePage() {
         <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
           {/* Back button */}
           <button
-            onClick={() => { setView("hub"); }}
+            onClick={exitToHub}
             className="flex items-center gap-2 text-muted hover:text-cream transition-colors mb-6"
           >
             ← 返回探险地图
@@ -537,6 +819,141 @@ export default function AdventurePage() {
             {currentGame === "sunBook" && <SunScienceBook onComplete={handleComplete} />}
             {currentGame === "constellationDetective" && <ConstellationDetective onComplete={handleComplete} />}
             {currentGame === "thinking" && <ThinkingQuestion questions={THINKING_QUESTIONS} onComplete={handleComplete} />}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ========== TRANSITION VIEW ==========
+  if (view === "transition" && transitionData) {
+    return (
+      <div className="min-h-screen bg-navy star-field flex items-center justify-center">
+        <div className="max-w-md w-full mx-4 text-center animate-fade-in">
+          <div className="bg-navy-light border-2 border-teal/40 rounded-3xl p-8 shadow-2xl">
+            <div className="text-6xl mb-4 animate-bounce-in">🎉</div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-cream mb-2">
+              {transitionData.currentLabel} 完成！
+            </h2>
+            <div className="flex justify-center gap-1 my-4">
+              {[1, 2, 3].map((i) => (
+                <span
+                  key={i}
+                  className={`text-3xl ${
+                    i <= transitionData.stars
+                      ? "text-sunshine animate-star-pop"
+                      : "text-muted/30"
+                  }`}
+                  style={{ animationDelay: `${i * 0.15}s` }}
+                >
+                  ⭐
+                </span>
+              ))}
+            </div>
+            <p className="text-lg text-teal font-bold mb-6">
+              +{transitionData.score}分 · 💎 +1水晶
+            </p>
+
+            {transitionData.nextStation ? (
+              <>
+                <div className="bg-navy-mid rounded-xl p-4 mb-6">
+                  <p className="text-sm text-muted mb-1">下一关</p>
+                  <div className="flex items-center justify-center gap-3">
+                    <span className="text-3xl">{transitionData.nextStation.emoji}</span>
+                    <span className="text-xl font-bold text-cream">
+                      {transitionData.nextStation.label}
+                    </span>
+                  </div>
+                </div>
+                <button
+                  onClick={goToNextStation}
+                  className="w-full px-6 py-4 rounded-2xl bg-teal text-navy text-lg font-bold hover:bg-teal/80 transition-all animate-pulse-glow"
+                >
+                  继续冒险 → （{countdown}秒后自动进入）
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={goToNextStation}
+                className="w-full px-6 py-4 rounded-2xl bg-sunshine text-navy text-lg font-bold hover:bg-sunshine/80 transition-all animate-pulse-glow"
+              >
+                查看成绩 🏆 （{countdown}秒后自动进入）
+              </button>
+            )}
+
+            <button
+              onClick={exitToHub}
+              className="mt-4 text-sm text-muted hover:text-cream transition-colors"
+            >
+              先回到探险地图
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ========== COMPLETE VIEW ==========
+  if (view === "complete") {
+    const totalStars = actState
+      ? Object.values(actState.stations).reduce((sum, s) => sum + s.stars, 0)
+      : 0;
+    const totalScore = actState
+      ? Object.values(actState.stations).reduce((sum, s) => sum + s.score, 0)
+      : 0;
+
+    return (
+      <div className="min-h-screen bg-navy star-field flex items-center justify-center">
+        <div className="max-w-md w-full mx-4 text-center animate-fade-in">
+          <div className="bg-navy-light border-2 border-sunshine/40 rounded-3xl p-8 shadow-2xl">
+            <div className="text-7xl mb-4 animate-bounce-in">🏆</div>
+            <h2 className="text-3xl font-bold bg-gradient-to-r from-sunshine via-teal to-lavender bg-clip-text text-transparent mb-2">
+              恭喜通关！
+            </h2>
+            <p className="text-muted mb-6">你完成了所有的星空探险任务！</p>
+
+            <div className="grid grid-cols-3 gap-4 mb-6">
+              <div className="bg-navy-mid rounded-xl p-3">
+                <div className="text-3xl mb-1">⭐</div>
+                <div className="text-2xl font-bold text-sunshine">{totalStars}</div>
+                <div className="text-xs text-muted">星星总数</div>
+              </div>
+              <div className="bg-navy-mid rounded-xl p-3">
+                <div className="text-3xl mb-1">💎</div>
+                <div className="text-2xl font-bold text-teal">{actState?.crystalsCollected || 0}</div>
+                <div className="text-xs text-muted">水晶收集</div>
+              </div>
+              <div className="bg-navy-mid rounded-xl p-3">
+                <div className="text-3xl mb-1">🏅</div>
+                <div className="text-2xl font-bold text-lavender">{totalScore}</div>
+                <div className="text-xs text-muted">总得分</div>
+              </div>
+            </div>
+
+            <div className="bg-navy-mid rounded-xl p-4 mb-6">
+              <p className="text-cream">
+                <span className="text-2xl mr-2">🦉</span>
+                太棒了，小探险家！你帮星星们找回了所有的水晶碎片，
+                星空又恢复了往日的闪亮。知知为你感到骄傲！
+              </p>
+            </div>
+
+            <button
+              onClick={() => {
+                setAutoPlayMode(false);
+                setView("hub");
+              }}
+              className="w-full px-6 py-4 rounded-2xl bg-teal text-navy text-lg font-bold hover:bg-teal/80 transition-all"
+            >
+              返回探险地图 🗺️
+            </button>
+
+            <button
+              onClick={() => router.push("/achievement")}
+              className="w-full mt-3 px-6 py-3 rounded-2xl bg-navy-mid border border-lavender/40 text-cream font-bold hover:bg-lavender/10 transition-all"
+            >
+              查看成就徽章 🏅
+            </button>
           </div>
         </div>
       </div>

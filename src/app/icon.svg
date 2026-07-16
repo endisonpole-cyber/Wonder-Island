@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <radialGradient id="bodyGrad" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#6EE7DE"/>
+      <stop offset="100%" stop-color="#4ECDC4"/>
+    </radialGradient>
+    <radialGradient id="bellyGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFF9E6"/>
+      <stop offset="100%" stop-color="#FFE66D"/>
+    </radialGradient>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="32" cy="32" r="32" fill="#0B0E1A"/>
+  
+  <!-- Ear tufts -->
+  <path d="M16 18 L20 8 L26 16 Z" fill="url(#bodyGrad)"/>
+  <path d="M48 18 L44 8 L38 16 Z" fill="url(#bodyGrad)"/>
+  
+  <!-- Body -->
+  <ellipse cx="32" cy="36" rx="20" ry="22" fill="url(#bodyGrad)"/>
+  
+  <!-- Belly -->
+  <ellipse cx="32" cy="42" rx="12" ry="14" fill="url(#bellyGrad)"/>
+  
+  <!-- Eye whites -->
+  <circle cx="24" cy="30" r="8" fill="white"/>
+  <circle cx="40" cy="30" r="8" fill="white"/>
+  
+  <!-- Eye pupils -->
+  <circle cx="25" cy="31" r="4" fill="#1C2038"/>
+  <circle cx="41" cy="31" r="4" fill="#1C2038"/>
+  
+  <!-- Eye shines -->
+  <circle cx="26.5" cy="29.5" r="1.5" fill="white"/>
+  <circle cx="42.5" cy="29.5" r="1.5" fill="white"/>
+  
+  <!-- Beak -->
+  <path d="M32 36 L28 42 L36 42 Z" fill="#FF6B6B"/>
+  
+  <!-- Wing details -->
+  <path d="M14 38 Q12 46 18 52" stroke="#3DB8B0" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M50 38 Q52 46 46 52" stroke="#3DB8B0" stroke-width="2" fill="none" stroke-linecap="round"/>
+  
+  <!-- Feet -->
+  <ellipse cx="26" cy="56" rx="4" ry="2" fill="#FFE66D"/>
+  <ellipse cx="38" cy="56" rx="4" ry="2" fill="#FFE66D"/>
+  
+  <!-- Sparkle -->
+  <circle cx="52" cy="14" r="2" fill="#FFE66D" opacity="0.8"/>
+  <circle cx="12" cy="20" r="1.5" fill="#A78BFA" opacity="0.6"/>
+</svg>
