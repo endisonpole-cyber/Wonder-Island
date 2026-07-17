@@ -583,25 +583,37 @@ export default function AdventurePage() {
           <div className="absolute bottom-40 left-20 text-2xl animate-twinkle animate-delay-12">⭐</div>
         </div>
 
-        {/* Interactive stars - 固定位置，点击收集 */}
+        {/* Interactive stars - 顺序出现，点击完一个下一个才闪烁 */}
         <div className="absolute inset-0 pointer-events-none">
-          {STORY_STAR_POSITIONS.map((pos, i) => (
-            <button
-              key={i}
-              onClick={() => handleStarClick(i)}
-              className="absolute text-xl sm:text-2xl transition-all duration-300 hover:scale-150 pointer-events-auto"
-              style={{
-                left: `${pos.x}%`,
-                top: `${pos.y}%`,
-                animation: clickedStars.includes(i) 
-                  ? 'starPop 0.5s ease-out forwards' 
-                  : `twinkle 3s ease-in-out ${pos.delay}s infinite`,
-                opacity: clickedStars.includes(i) ? 1 : 0.7,
-              }}
-            >
-              {clickedStars.includes(i) ? '💫' : '⭐'}
-            </button>
-          ))}
+          {STORY_STAR_POSITIONS.slice(0, 5).map((pos, i) => {
+            const isCollected = clickedStars.includes(i);
+            const isCurrent = clickedStars.length === i;
+            const isLocked = i > clickedStars.length;
+
+            return (
+              <button
+                key={i}
+                onClick={() => isCurrent && handleStarClick(i)}
+                className={`absolute text-xl sm:text-2xl transition-all duration-500 pointer-events-auto ${
+                  isCurrent ? 'scale-110' : isCollected ? 'scale-100' : 'scale-75'
+                }`}
+                style={{
+                  left: `${pos.x}%`,
+                  top: `${pos.y}%`,
+                  animation: isCollected 
+                    ? 'starPop 0.5s ease-out forwards' 
+                    : isCurrent
+                      ? 'twinkle 2s ease-in-out infinite'
+                      : 'none',
+                  opacity: isCollected ? 1 : isCurrent ? 1 : isLocked ? 0.15 : 0.5,
+                  cursor: isCurrent ? 'pointer' : 'default',
+                  filter: isCurrent ? 'drop-shadow(0 0 8px rgba(255, 230, 109, 0.8))' : 'none',
+                }}
+              >
+                {isCollected ? '💫' : isCurrent ? '⭐' : '✦'}
+              </button>
+            );
+          })}
         </div>
 
         {/* 流星雨背景效果 - 头部亮，尾部暗，从上往下落 */}
