@@ -621,10 +621,6 @@ export default function AdventurePage() {
 
             {/* Scene illustration */}
             <div className="w-full h-48 sm:h-64 bg-gradient-to-b from-navy-mid/80 to-navy/80 rounded-3xl border-2 border-navy-border flex items-center justify-center mb-6 overflow-hidden star-field relative">
-              {/* Shooting star effect */}
-              <div className="shooting-star" style={{ top: '20%', left: '80%' }}></div>
-              <div className="shooting-star shooting-star-delayed" style={{ top: '60%', left: '90%' }}></div>
-              
               <div className="text-center relative z-10">
                 <span className="text-6xl sm:text-7xl block animate-float">🌟</span>
                 <div className="flex gap-3 mt-3 justify-center">

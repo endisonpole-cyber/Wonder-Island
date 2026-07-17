@@ -249,35 +249,6 @@ body {
   background-size: 220px 100px;
 }
 
-.shooting-star {
-  position: absolute;
-  width: 100px;
-  height: 2px;
-  background: linear-gradient(to left, #fff, transparent);
-  animation: shoot 4s linear infinite;
-  opacity: 0;
-}
-.shooting-star-delayed {
-  animation: shoot 4s linear 2s infinite;
-}
-
-@keyframes shoot {
-  0% {
-    transform: translateX(0) translateY(0) rotate(-45deg);
-    opacity: 0;
-  }
-  10% {
-    opacity: 1;
-  }
-  60% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateX(-200px) translateY(200px) rotate(-45deg);
-    opacity: 0;
-  }
-}
-
 /* 流星雨拖尾动画 - 头部亮，尾部暗，从上往下落 */
 @keyframes meteorShoot {
   0% {
