@@ -278,20 +278,20 @@ body {
   }
 }
 
-/* 流星雨拖尾动画 */
+/* 流星雨拖尾动画 - 头部亮，尾部暗，从上往下落 */
 @keyframes meteorShoot {
   0% {
-    transform: translateX(0) translateY(0) rotate(-35deg);
+    transform: translateX(0) translateY(0) rotate(45deg);
     opacity: 0;
   }
   5% {
     opacity: 1;
   }
   60% {
-    opacity: 0.8;
+    opacity: 0.9;
   }
   100% {
-    transform: translateX(-300px) translateY(250px) rotate(-35deg);
+    transform: translateX(300px) translateY(300px) rotate(45deg);
     opacity: 0;
   }
 }

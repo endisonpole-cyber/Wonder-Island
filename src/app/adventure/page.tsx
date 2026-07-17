@@ -584,17 +584,17 @@ export default function AdventurePage() {
           ))}
         </div>
 
-        {/* 流星雨背景效果 */}
+        {/* 流星雨背景效果 - 头部亮，尾部暗，从上往下落 */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           {[...Array(8)].map((_, i) => (
             <div
               key={i}
-              className="absolute w-20 sm:w-28 h-px bg-gradient-to-l from-white/80 via-white/40 to-transparent"
+              className="absolute w-20 sm:w-28 h-px bg-gradient-to-l from-white/90 via-white/50 to-transparent"
               style={{
-                top: `${10 + i * 12}%`,
-                left: `${20 + (i % 3) * 30}%`,
-                animation: `meteorShoot ${3 + i * 0.5}s linear ${i * 0.8}s infinite`,
-                transform: 'rotate(-35deg)',
+                top: `${5 + i * 11}%`,
+                left: `${5 + (i % 4) * 25}%`,
+                animation: `meteorShoot ${3 + i * 0.4}s linear ${i * 0.7}s infinite`,
+                transform: 'rotate(45deg)',
                 opacity: 0,
               }}
             />
