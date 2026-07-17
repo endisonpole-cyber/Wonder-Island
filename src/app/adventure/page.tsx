@@ -62,16 +62,13 @@ const ACT_DATA = [
   },
 ];
 
-// 故事导入页星星固定位置（共8颗，收集5颗即可）
+// 故事导入页星星固定位置（5颗，分布在屏幕边缘，不挡内容）
 const STORY_STAR_POSITIONS = [
-  { x: 15, y: 20, delay: 0 },
-  { x: 75, y: 15, delay: 0.5 },
-  { x: 85, y: 40, delay: 1 },
-  { x: 25, y: 75, delay: 1.5 },
-  { x: 60, y: 80, delay: 2 },
-  { x: 10, y: 55, delay: 0.3 },
-  { x: 90, y: 70, delay: 1.2 },
-  { x: 45, y: 30, delay: 0.8 },
+  { x: 8, y: 12, delay: 0 },
+  { x: 92, y: 18, delay: 0.5 },
+  { x: 90, y: 50, delay: 1 },
+  { x: 10, y: 82, delay: 1.5 },
+  { x: 88, y: 85, delay: 2 },
 ];
 
 const STATION_LIST = [
@@ -584,7 +581,7 @@ export default function AdventurePage() {
         </div>
 
         {/* Interactive stars - 顺序出现，点击完一个下一个才闪烁 */}
-        <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute inset-0 pointer-events-none z-20">
           {STORY_STAR_POSITIONS.slice(0, 5).map((pos, i) => {
             const isCollected = clickedStars.includes(i);
             const isCurrent = clickedStars.length === i;
