@@ -594,8 +594,8 @@ export default function AdventurePage() {
               <button
                 key={i}
                 onClick={() => isCurrent && handleStarClick(i)}
-                className={`absolute text-xl sm:text-2xl transition-all duration-500 pointer-events-auto ${
-                  isCurrent ? 'scale-110' : isCollected ? 'scale-100' : 'scale-75'
+                className={`absolute transition-all duration-500 pointer-events-auto ${
+                  isCurrent ? 'text-4xl sm:text-5xl' : isCollected ? 'text-2xl sm:text-3xl' : 'text-base sm:text-lg'
                 }`}
                 style={{
                   left: `${pos.x}%`,
@@ -603,14 +603,25 @@ export default function AdventurePage() {
                   animation: isCollected 
                     ? 'starPop 0.5s ease-out forwards' 
                     : isCurrent
-                      ? 'twinkle 2s ease-in-out infinite'
+                      ? 'twinkle 1.5s ease-in-out infinite'
                       : 'none',
                   opacity: isCollected ? 1 : isCurrent ? 1 : isLocked ? 0.15 : 0.5,
                   cursor: isCurrent ? 'pointer' : 'default',
-                  filter: isCurrent ? 'drop-shadow(0 0 8px rgba(255, 230, 109, 0.8))' : 'none',
+                  filter: isCurrent 
+                    ? 'drop-shadow(0 0 12px rgba(255, 230, 109, 1))' 
+                    : isCollected
+                      ? 'drop-shadow(0 0 6px rgba(255, 230, 109, 0.6))'
+                      : 'none',
+                  transform: `translate(-50%, -50%) ${isCurrent ? 'scale(1.1)' : ''}`,
                 }}
               >
                 {isCollected ? '💫' : isCurrent ? '⭐' : '✦'}
+                {/* 当前星星的提示小箭头 */}
+                {isCurrent && (
+                  <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-xs text-sunshine whitespace-nowrap animate-bounce font-bold">
+                    点我！👇
+                  </span>
+                )}
               </button>
             );
           })}
