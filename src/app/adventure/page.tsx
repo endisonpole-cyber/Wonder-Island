@@ -56,7 +56,9 @@ const ACT_DATA = [
     subtitle: "星星的秘密",
     emoji: "🌟",
     description: "夜空中布满了闪烁的星星，让我们来认识它们吧！",
-    storyMessage: "小探险家，欢迎来到奇知岛！我是知知，一只来自知识星球的猫头鹰。今天我们要去星空探险，帮星星们找回丢失的水晶碎片。准备好了吗？出发吧！",
+    storyMessage: "小探险家，欢迎来到奇知岛！我是知知，一只来自知识星球的猫头鹰。你知道吗？天上的星星其实都是巨大的火球，就像太阳一样，只是它们离我们太远太远了，所以看起来又小又暗。",
+    storyMessage2: "星星们住在一条叫银河系的大河里，那里有上千亿颗星星呢！它们有的亮，有的暗，有的大，有的小。古人还把星星连成图案，给它们起了好听的名字，比如北斗七星、猎户座。",
+    storyMessage3: "可是最近，星星们的水晶碎片不见了！没有水晶，星星就没法闪闪发光了。今天你的任务就是：通过数学、英语和科学的考验，帮星星们找回5颗水晶碎片。准备好了吗？先点击夜空中的星星，让它们亮起来吧！",
   },
 ];
 
@@ -127,6 +129,8 @@ export default function AdventurePage() {
   const [resultPhase, setResultPhase] = useState<"sorting" | "comparing">("sorting");
   const [sortingDone, setSortingDone] = useState(false);
   const [showWelcomeSpeech, setShowWelcomeSpeech] = useState(true);
+
+  const [storyParagraph, setStoryParagraph] = useState(0);
 
   const actState = store.currentTheme
     ? store.themes[store.currentTheme].acts[0]
@@ -231,24 +235,40 @@ export default function AdventurePage() {
     setClickedStars([]);
     setStoryPhase('intro');
     setDisplayedText('');
-    const startTimer = setTimeout(() => setStoryPhase('dialogue'), 1500);
+    setStoryParagraph(0);
+    const startTimer = setTimeout(() => setStoryPhase('dialogue'), 800);
     return () => clearTimeout(startTimer);
   }, [view]);
 
+  const STORY_PARAGRAPHS = [
+    ACT_DATA[0].storyMessage,
+    ACT_DATA[0].storyMessage2,
+    ACT_DATA[0].storyMessage3,
+  ];
+
   useEffect(() => {
     if (storyPhase !== 'dialogue') return;
+    const currentText = STORY_PARAGRAPHS[storyParagraph] || '';
     let index = 0;
     const timer = setInterval(() => {
-      if (index <= ACT_DATA[0].storyMessage.length) {
-        setDisplayedText(ACT_DATA[0].storyMessage.slice(0, index));
+      if (index <= currentText.length) {
+        setDisplayedText(currentText.slice(0, index));
         index++;
       } else {
         clearInterval(timer);
         setStoryPhase('ready');
       }
-    }, 80);
+    }, 70);
     return () => clearInterval(timer);
-  }, [storyPhase]);
+  }, [storyPhase, storyParagraph]);
+
+  const handleNextParagraph = () => {
+    if (storyParagraph < STORY_PARAGRAPHS.length - 1) {
+      setStoryParagraph(p => p + 1);
+      setDisplayedText('');
+      setStoryPhase('dialogue');
+    }
+  };
 
   const handleStationClick = (stationId: string) => {
     setAutoPlayMode(true);
@@ -639,7 +659,19 @@ export default function AdventurePage() {
               <div className="flex items-start gap-3">
                 <div className="text-4xl animate-bounce-in">🦉</div>
                 <div className="flex-1">
-                  <p className="text-sm text-lavender mb-1">知知猫头鹰说：</p>
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-sm text-lavender">知知猫头鹰说：</p>
+                    <div className="flex gap-1">
+                      {STORY_PARAGRAPHS.map((_, i) => (
+                        <span
+                          key={i}
+                          className={`w-2 h-2 rounded-full transition-all ${
+                            i === storyParagraph ? 'bg-lavender w-4' : 'bg-navy-border'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
                   <p className="text-cream text-base sm:text-lg leading-relaxed">
                     {storyPhase === 'intro' ? (
                       <span className="animate-pulse">...</span>
@@ -650,6 +682,16 @@ export default function AdventurePage() {
                       </>
                     )}
                   </p>
+                  {/* 继续按钮 */}
+                  {storyPhase === 'ready' && storyParagraph < STORY_PARAGRAPHS.length - 1 && (
+                    <button
+                      onClick={handleNextParagraph}
+                      className="mt-3 px-4 py-1.5 rounded-full bg-lavender/20 border border-lavender/50 text-sm text-lavender hover:bg-lavender/30 transition-all flex items-center gap-1"
+                    >
+                      继续
+                      <span>→</span>
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -682,18 +724,25 @@ export default function AdventurePage() {
               </div>
             </div>
 
-            {/* Continue button */}
+            {/* Continue button - 只有最后一段且收集了5颗星星才显示 */}
             <div className="mt-4 text-center">
-              {storyPhase === 'ready' ? (
-                <button
-                  onClick={() => handleComplete(5, 1)}
-                  className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-teal to-sunshine text-navy text-xl font-bold hover:opacity-90 transition-all animate-pulse-glow"
-                >
-                  开始探险！🚀
-                </button>
+              {storyPhase === 'ready' && storyParagraph === STORY_PARAGRAPHS.length - 1 ? (
+                clickedStars.length >= 5 ? (
+                  <button
+                    onClick={() => handleComplete(5, 1)}
+                    className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-teal to-sunshine text-navy text-xl font-bold hover:opacity-90 transition-all animate-pulse-glow"
+                  >
+                    开始探险！🚀
+                  </button>
+                ) : (
+                  <div className="text-sunshine text-sm">
+                    ✨ 先点击背景中的星星，收集 5 颗星星再出发吧！
+                    <span className="text-cream ml-1">（{clickedStars.length}/5）</span>
+                  </div>
+                )
               ) : (
-                <div className="text-muted text-sm animate-pulse">
-                  知知正在讲述冒险故事...
+                <div className="text-muted text-sm">
+                  👆 点击「继续」听知知讲星星的故事
                 </div>
               )}
             </div>
