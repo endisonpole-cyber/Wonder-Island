@@ -278,6 +278,24 @@ body {
   }
 }
 
+/* 流星雨拖尾动画 */
+@keyframes meteorShoot {
+  0% {
+    transform: translateX(0) translateY(0) rotate(-35deg);
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  60% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateX(-300px) translateY(250px) rotate(-35deg);
+    opacity: 0;
+  }
+}
+
 /* Card hover effect */
 .game-card {
   transition: all 0.3s ease;

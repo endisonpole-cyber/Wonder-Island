@@ -60,6 +60,18 @@ const ACT_DATA = [
   },
 ];
 
+// 故事导入页星星固定位置（共8颗，收集5颗即可）
+const STORY_STAR_POSITIONS = [
+  { x: 15, y: 20, delay: 0 },
+  { x: 75, y: 15, delay: 0.5 },
+  { x: 85, y: 40, delay: 1 },
+  { x: 25, y: 75, delay: 1.5 },
+  { x: 60, y: 80, delay: 2 },
+  { x: 10, y: 55, delay: 0.3 },
+  { x: 90, y: 70, delay: 1.2 },
+  { x: 45, y: 30, delay: 0.8 },
+];
+
 const STATION_LIST = [
   { type: "story" as const, label: "故事导入", emoji: "📖", description: "知知讲述冒险故事" },
   { type: "math1" as const, label: "星星数一数", emoji: "🔢", description: "点击夜空中的星星，数一数有几颗" },
@@ -551,24 +563,41 @@ export default function AdventurePage() {
           <div className="absolute bottom-40 left-20 text-2xl animate-twinkle animate-delay-12">⭐</div>
         </div>
 
-        {/* Interactive stars */}
+        {/* Interactive stars - 固定位置，点击收集 */}
         <div className="absolute inset-0 pointer-events-none">
-          {[...Array(15)].map((_, i) => (
+          {STORY_STAR_POSITIONS.map((pos, i) => (
             <button
               key={i}
               onClick={() => handleStarClick(i)}
               className="absolute text-xl sm:text-2xl transition-all duration-300 hover:scale-150 pointer-events-auto"
               style={{
-                left: `${10 + Math.random() * 80}%`,
-                top: `${10 + Math.random() * 80}%`,
+                left: `${pos.x}%`,
+                top: `${pos.y}%`,
                 animation: clickedStars.includes(i) 
                   ? 'starPop 0.5s ease-out forwards' 
-                  : `twinkle 3s ease-in-out ${Math.random() * 3}s infinite`,
-                opacity: clickedStars.includes(i) ? 1 : 0.6,
+                  : `twinkle 3s ease-in-out ${pos.delay}s infinite`,
+                opacity: clickedStars.includes(i) ? 1 : 0.7,
               }}
             >
               {clickedStars.includes(i) ? '💫' : '⭐'}
             </button>
+          ))}
+        </div>
+
+        {/* 流星雨背景效果 */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          {[...Array(8)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-20 sm:w-28 h-px bg-gradient-to-l from-white/80 via-white/40 to-transparent"
+              style={{
+                top: `${10 + i * 12}%`,
+                left: `${20 + (i % 3) * 30}%`,
+                animation: `meteorShoot ${3 + i * 0.5}s linear ${i * 0.8}s infinite`,
+                transform: 'rotate(-35deg)',
+                opacity: 0,
+              }}
+            />
           ))}
         </div>
 
@@ -619,7 +648,10 @@ export default function AdventurePage() {
                     {storyPhase === 'intro' ? (
                       <span className="animate-pulse">...</span>
                     ) : (
-                      displayedText + (storyPhase === 'dialogue' ? <span className="animate-pulse">|</span> : '')
+                      <>
+                        {displayedText}
+                        {storyPhase === 'dialogue' && <span className="animate-pulse">|</span>}
+                      </>
                     )}
                   </p>
                 </div>
